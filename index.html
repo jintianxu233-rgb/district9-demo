@@ -8,41 +8,55 @@
     body { margin: 0; }
     canvas { display: block; margin: auto; }
 
-    /* 虚拟按钮样式 */
+    /* 虚拟按钮容器 */
     #controls {
       position: fixed;
-      bottom: 20px;
+      bottom: 100px;  /* 上移，避免贴到手机底部手势区 */
       left: 50%;
       transform: translateX(-50%);
+      width: 240px;
+      height: 240px;
       display: grid;
-      grid-template-columns: 60px 60px 60px;
-      grid-template-rows: 60px 60px;
-      gap: 10px;
+      grid-template-columns: 80px 80px 80px;
+      grid-template-rows: 80px 80px 80px;
       justify-items: center;
       align-items: center;
       z-index: 10;
+      touch-action: none; /* 禁止系统手势冲突 */
     }
+
+    /* 单个按钮样式 */
     #controls button {
-      font-size: 24px;
-      width: 60px;
-      height: 60px;
+      font-size: 28px;
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
       border: none;
-      background: rgba(0,0,0,0.4);
+      background: rgba(0,0,0,0.6);
       color: white;
+      touch-action: none;
+    }
+
+    /* 让中间的空格透明占位 */
+    #controls .empty {
+      background: transparent;
+      border: none;
     }
   </style>
 </head>
 <body>
 
-<!-- 手机端虚拟按钮 -->
+<!-- 手机端虚拟按钮（十字型布局） -->
 <div id="controls">
-  <div></div>
+  <div class="empty"></div>
   <button id="up">↑</button>
-  <div></div>
+  <div class="empty"></div>
   <button id="left">←</button>
-  <button id="down">↓</button>
+  <div class="empty"></div>
   <button id="right">→</button>
+  <div class="empty"></div>
+  <button id="down">↓</button>
+  <div class="empty"></div>
 </div>
 
 <script>
@@ -81,21 +95,20 @@ class District9Scene extends Phaser.Scene {
     // 键盘
     this.cursors = this.input.keyboard.createCursorKeys();
 
-    // 虚拟按钮状态
+    // 手机端输入状态
     this.mobileInput = { up: false, down: false, left: false, right: false };
 
     // 虚拟按钮绑定
-    document.getElementById("up").addEventListener("touchstart", () => this.mobileInput.up = true);
-    document.getElementById("up").addEventListener("touchend", () => this.mobileInput.up = false);
+    const bindButton = (id, dir) => {
+      const btn = document.getElementById(id);
+      btn.addEventListener("touchstart", () => this.mobileInput[dir] = true);
+      btn.addEventListener("touchend", () => this.mobileInput[dir] = false);
+    };
 
-    document.getElementById("down").addEventListener("touchstart", () => this.mobileInput.down = true);
-    document.getElementById("down").addEventListener("touchend", () => this.mobileInput.down = false);
-
-    document.getElementById("left").addEventListener("touchstart", () => this.mobileInput.left = true);
-    document.getElementById("left").addEventListener("touchend", () => this.mobileInput.left = false);
-
-    document.getElementById("right").addEventListener("touchstart", () => this.mobileInput.right = true);
-    document.getElementById("right").addEventListener("touchend", () => this.mobileInput.right = false);
+    bindButton("up", "up");
+    bindButton("down", "down");
+    bindButton("left", "left");
+    bindButton("right", "right");
 
     // 信息框
     this.message = this.add.text(20, 560,
