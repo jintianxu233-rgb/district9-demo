@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>District 9 Pixel Exploration</title>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+  <style>
+    body { margin: 0; }
+    canvas { display: block; margin: auto; }
+  </style>
+</head>
+<body>
+
+<script>
+class District9Scene extends Phaser.Scene {
+  constructor() {
+    super("District9Scene");
+  }
+
+  create() {
+    // Background grass
+    this.add.rectangle(400, 300, 800, 600, 0x77dd77);
+
+    // Player (blue square)
+    this.player = this.add.rectangle(100, 100, 20, 20, 0x3366ff);
+    this.physics.add.existing(this.player);
+    this.player.body.setCollideWorldBounds(true);
+
+    // Zones (yellow transparent areas)
+    this.zones = [
+      { name: "Exposition Park", x: 200, y: 150, w: 100, h: 100,
+        text: "🚁 Drone: This is Exposition Park.\nOnly 0.33 acres of recreation per 1000 residents.\nPeople want safer, greener spaces." },
+      { name: "Old Apartment", x: 600, y: 150, w: 100, h: 100,
+        text: "🚁 Drone: Old apartments here are overcrowded.\n68% of households are cost-burdened, 41% severely.\nHousing is a major struggle." },
+      { name: "Fast Food Street", x: 200, y: 450, w: 120, h: 100,
+        text: "🚁 Drone: Fast food is everywhere.\nObesity is 33%, diabetes 13%.\nHealthy food is hard to access." },
+      { name: "Bus Stop", x: 600, y: 450, w: 100, h: 100,
+        text: "🚁 Drone: This bus stop is crowded and unreliable.\nTransportation affects how people access jobs and health." }
+    ];
+
+    this.zoneObjects = [];
+    this.zones.forEach(z => {
+      let zone = this.add.rectangle(z.x, z.y, z.w, z.h, 0xffcc00, 0.4);
+      this.physics.add.existing(zone, true);
+      this.physics.add.overlap(this.player, zone, () => this.showMessage(z.text), null, this);
+      this.zoneObjects.push(zone);
+    });
+
+    // Keyboard controls
+    this.cursors = this.input.keyboard.createCursorKeys();
+
+    // Message box
+    this.message = this.add.text(20, 560, "🚁 Drone: Explore District 9.\nWalk into yellow areas to learn about issues.", {
+      font: "16px Arial",
+      fill: "#000",
+      backgroundColor: "#fff",
+      padding: { x: 8, y: 8 }
+    }).setScrollFactor(0);
+  }
+
+  update() {
+    const speed = 150;
+    this.player.body.setVelocity(0);
+
+    if (this.cursors.left.isDown) this.player.body.setVelocityX(-speed);
+    if (this.cursors.right.isDown) this.player.body.setVelocityX(speed);
+    if (this.cursors.up.isDown) this.player.body.setVelocityY(-speed);
+    if (this.cursors.down.isDown) this.player.body.setVelocityY(speed);
+  }
+
+  showMessage(text) {
+    this.message.setText(text);
+  }
+}
+
+const config = {
+  type: Phaser.AUTO,
+  width: 800,
+  height: 600,
+  backgroundColor: "#aaddff",
+  physics: { default: "arcade" },
+  scene: District9Scene
+};
+
+const game = new Phaser.Game(config);
+</script>
+
+</body>
+</html>
