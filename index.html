@@ -7,9 +7,43 @@
   <style>
     body { margin: 0; }
     canvas { display: block; margin: auto; }
+
+    /* 虚拟按钮样式 */
+    #controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: grid;
+      grid-template-columns: 60px 60px 60px;
+      grid-template-rows: 60px 60px;
+      gap: 10px;
+      justify-items: center;
+      align-items: center;
+      z-index: 10;
+    }
+    #controls button {
+      font-size: 24px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0,0,0,0.4);
+      color: white;
+    }
   </style>
 </head>
 <body>
+
+<!-- 手机端虚拟按钮 -->
+<div id="controls">
+  <div></div>
+  <button id="up">↑</button>
+  <div></div>
+  <button id="left">←</button>
+  <button id="down">↓</button>
+  <button id="right">→</button>
+</div>
 
 <script>
 class District9Scene extends Phaser.Scene {
@@ -18,15 +52,15 @@ class District9Scene extends Phaser.Scene {
   }
 
   create() {
-    // Background grass
+    // 背景
     this.add.rectangle(400, 300, 800, 600, 0x77dd77);
 
-    // Player (blue square)
+    // 玩家
     this.player = this.add.rectangle(100, 100, 20, 20, 0x3366ff);
     this.physics.add.existing(this.player);
     this.player.body.setCollideWorldBounds(true);
 
-    // Zones (yellow transparent areas)
+    // 区域
     this.zones = [
       { name: "Exposition Park", x: 200, y: 150, w: 100, h: 100,
         text: "🚁 Drone: This is Exposition Park.\nOnly 0.33 acres of recreation per 1000 residents.\nPeople want safer, greener spaces." },
@@ -38,19 +72,34 @@ class District9Scene extends Phaser.Scene {
         text: "🚁 Drone: This bus stop is crowded and unreliable.\nTransportation affects how people access jobs and health." }
     ];
 
-    this.zoneObjects = [];
     this.zones.forEach(z => {
       let zone = this.add.rectangle(z.x, z.y, z.w, z.h, 0xffcc00, 0.4);
       this.physics.add.existing(zone, true);
       this.physics.add.overlap(this.player, zone, () => this.showMessage(z.text), null, this);
-      this.zoneObjects.push(zone);
     });
 
-    // Keyboard controls
+    // 键盘
     this.cursors = this.input.keyboard.createCursorKeys();
 
-    // Message box
-    this.message = this.add.text(20, 560, "🚁 Drone: Explore District 9.\nWalk into yellow areas to learn about issues.", {
+    // 虚拟按钮状态
+    this.mobileInput = { up: false, down: false, left: false, right: false };
+
+    // 虚拟按钮绑定
+    document.getElementById("up").addEventListener("touchstart", () => this.mobileInput.up = true);
+    document.getElementById("up").addEventListener("touchend", () => this.mobileInput.up = false);
+
+    document.getElementById("down").addEventListener("touchstart", () => this.mobileInput.down = true);
+    document.getElementById("down").addEventListener("touchend", () => this.mobileInput.down = false);
+
+    document.getElementById("left").addEventListener("touchstart", () => this.mobileInput.left = true);
+    document.getElementById("left").addEventListener("touchend", () => this.mobileInput.left = false);
+
+    document.getElementById("right").addEventListener("touchstart", () => this.mobileInput.right = true);
+    document.getElementById("right").addEventListener("touchend", () => this.mobileInput.right = false);
+
+    // 信息框
+    this.message = this.add.text(20, 560,
+      "🚁 Drone: Explore District 9.\nWalk into yellow areas to learn about issues.", {
       font: "16px Arial",
       fill: "#000",
       backgroundColor: "#fff",
@@ -62,10 +111,11 @@ class District9Scene extends Phaser.Scene {
     const speed = 150;
     this.player.body.setVelocity(0);
 
-    if (this.cursors.left.isDown) this.player.body.setVelocityX(-speed);
-    if (this.cursors.right.isDown) this.player.body.setVelocityX(speed);
-    if (this.cursors.up.isDown) this.player.body.setVelocityY(-speed);
-    if (this.cursors.down.isDown) this.player.body.setVelocityY(speed);
+    // 键盘 + 手机输入
+    if (this.cursors.left.isDown || this.mobileInput.left) this.player.body.setVelocityX(-speed);
+    if (this.cursors.right.isDown || this.mobileInput.right) this.player.body.setVelocityX(speed);
+    if (this.cursors.up.isDown || this.mobileInput.up) this.player.body.setVelocityY(-speed);
+    if (this.cursors.down.isDown || this.mobileInput.down) this.player.body.setVelocityY(speed);
   }
 
   showMessage(text) {
